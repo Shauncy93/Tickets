@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket-Validator</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #reader {
+            width: 300px;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        #result {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ticket-Validator</h1>
+    <div id="reader"></div>
+    <div id="result"></div>
+
+    <script>
+        function onScanSuccess(decodedText, decodedResult) {
+            // Hier fügen wir den API-Aufruf ein
+            validateTicket(decodedText);
+        }
+
+        function onScanFailure(error) {
+            console.warn(`QR-Code-Scan fehlgeschlagen: ${error}`);
+        }
+
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 10, qrbox: {width: 250, height: 250} },
+            false);
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+        function validateTicket(ticketCode) {
+            const apiUrl = 'https://script.google.com/macros/s/AKfycbwWFmb9xW0QMRFQ4-TPcivGwQK1DCsL_hzszrriJYSbZlukgT4aIna64j5QHne3A6CDBw/exec';
+            
+            fetch(`${apiUrl}?ticket=${encodeURIComponent(ticketCode)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.isValid) {
+                        document.getElementById('result').textContent = 'Gültiges Ticket';
+                        document.getElementById('result').style.color = 'green';
+                    } else {
+                        document.getElementById('result').textContent = 'Ungültiges Ticket';
+                        document.getElementById('result').style.color = 'red';
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler:', error);
+                    document.getElementById('result').textContent = 'Fehler bei der Überprüfung';
+                    document.getElementById('result').style.color = 'orange';
+                });
+        }
+    </script>
+</body>
+</html>
